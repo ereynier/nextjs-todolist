@@ -1,7 +1,7 @@
 "use client"
 
 import { TodoItem, TodoList } from "@/types/Todo"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import Todo from "./todo"
 import { TextForm } from "./textForm"
 import Prompt from "./Prompt"
@@ -12,15 +12,16 @@ import { CREATE_TODO, DELETE_TODO, UPDATE_TODO } from "../api/graphql/mutations"
 
 export default function Todos() {
 
+    const refetchQueries = [{query: GET_TODOS}]
     const {data, loading, error} = useQuery(GET_TODOS)
     const [deleteTodoItem] = useMutation(DELETE_TODO, {
-        refetchQueries: [{query: GET_TODOS}]
+        refetchQueries
     })
     const [updateTodoItem] = useMutation(UPDATE_TODO, {
-        refetchQueries: [{query: GET_TODOS}]
+        refetchQueries
     })
     const [createTodoItem] = useMutation(CREATE_TODO, {
-        refetchQueries: [{query: GET_TODOS}]
+        refetchQueries
     })
 
     const [todos, setTodos] = useState<TodoList>([])
@@ -30,16 +31,39 @@ export default function Todos() {
     const [popUpText, setPopUpText] = useState<string>("")
     const [filter, setFilter] = useState<string>("all")
     const [sortOrder, setSortOrder] = useState<number>(0)
-    const sortType: string[] = ["asc", "desc", "chrono", "reverse"]
+    const sortType = useMemo(() => ["asc", "desc", "chrono", "reverse"], []);
+
+
+    const sortList = useCallback((unsort: TodoList, sort: string) => {
+        let sorted: TodoList = []
+        console.log(sort)
+        if (sort === "asc" || sort === "desc") {
+            sorted = ([...unsort].sort((a, b) => {
+                const mod = sort === "asc" ?  -1 : 1
+                if (a.text < b.text) return 1 * mod
+                if (a.text > b.text) return -1 * mod
+                return 0
+            }))
+        } else if (sort === "chrono" || sort === "reverse") {
+            sorted = ([...unsort].sort((a, b) => {
+                const mod = sort === "chrono" ?  1 : -1
+                if (a.date < b.date) return 1 * mod
+                if (a.date > b.date) return -1 * mod
+                return 0
+            }))
+        }
+        return sorted
+    }, [])
 
     useEffect(() => {
         if (!loading && !error && data) {
             const fetchedTodos = data.todos.map((todo: ITodo) => {
                 return {text: todo.text, completed: todo.completed, date: new Date(parseInt((todo.createdAt).toString(), 10)), id: todo.id}
                 })
-            setTodos(fetchedTodos)
+            
+            setTodos(sortList(fetchedTodos, sortType[sortOrder]))
         }
-    }, [data, loading, error])
+    }, [data, loading, error, sortList, sortOrder, sortType])
 
 
     const addTodo = (text: string, completed: boolean) => {
@@ -49,19 +73,19 @@ export default function Todos() {
     }
 
     const removeTodo = (id: string) => {
+        setTodos([...todos].filter((todo) => todo.id !== id))
         deleteTodoItem({variables: {id: id}})
-        //setTodos([...todos].filter((todo) => todo.id !== id))
     }
 
     const editTodo = (id: string, text: string, completed: boolean) => {
+        setTodos([...todos].map((todo) => {
+            if (todo.id === id) {
+                todo.text = text
+                todo.completed = completed 
+            }
+            return todo
+        }))
         updateTodoItem({variables: {id: id, text: text, completed: completed}})
-        // setTodos([...todos].map((todo) => {
-        //     if (todo.id === id) {
-        //         todo.text = text
-        //         todo.completed = completed 
-        //     }
-        //     return todo
-        // }))
     }
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -104,31 +128,11 @@ export default function Todos() {
 
     const clickSortList = (unsort: TodoList) => {
         setSortOrder((sortOrder + 1) % 4)
-        setTodos(sortList(unsort))
+        setTodos(sortList(unsort, sortType[(sortOrder)]))
     }
         
 
-    const sortList = (unsort: TodoList) => {
-        let sorted: TodoList = []
-        const sort: string = sortType[(sortOrder + 1) % 4]
-        console.log(sort)
-        if (sort === "asc" || sort === "desc") {
-            sorted = ([...unsort].sort((a, b) => {
-                const mod = sort === "asc" ?  -1 : 1
-                if (a.text < b.text) return 1 * mod
-                if (a.text > b.text) return -1 * mod
-                return 0
-            }))
-        } else if (sort === "chrono" || sort === "reverse") {
-            sorted = ([...unsort].sort((a, b) => {
-                const mod = sort === "chrono" ?  1 : -1
-                if (a.date < b.date) return 1 * mod
-                if (a.date > b.date) return -1 * mod
-                return 0
-            }))
-        }
-        return sorted
-    }
+
 
     return (
         <div>
