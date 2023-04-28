@@ -1,3 +1,4 @@
+import { Providers } from './components/Providers'
 import './globals.css'
 import { Inter } from 'next/font/google'
 
@@ -15,7 +16,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="flex justify-center my-20">{children}</body>
+      <body className="flex justify-center my-20">
+        <Providers>
+          {children}
+        </Providers>
+      </body>
     </html>
   )
 }

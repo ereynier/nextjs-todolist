@@ -5,10 +5,14 @@ import { useState } from "react"
 import Todo from "./todo"
 import { TextForm } from "./textForm"
 import Prompt from "./Prompt"
+import { GET_TODOS } from "../api/graphql/queries"
+import { useQuery } from "@apollo/client"
 
 export default function Todos() {
 
-    const [todos, setTodos] = useState<TodoList>([ {text: "test", done: true, date: Date.now(), id: "1" }, {text: "wesh", done: false, date: Date.now(), id: "2" } ])
+    const {data, loading, error} = useQuery(GET_TODOS)
+
+    const [todos, setTodos] = useState<TodoList>([])
     const [newTodo, setNewTodo] = useState<string>("")
     const [todoEdition, setTodoEdition] = useState<string | null>(null)
     const [popUpOpen, setPopUpOpen] = useState<boolean>(false)
@@ -16,6 +20,7 @@ export default function Todos() {
     const [filter, setFilter] = useState<string>("all")
     const [sortOrder, setSortOrder] = useState<number>(0)
     const sortType: string[] = ["asc", "desc", "chrono", "reverse"]
+
 
 
     const addTodo = (text: string, done: boolean) => {
@@ -139,6 +144,8 @@ export default function Todos() {
                 </button>
             </div>
             <TextForm value={newTodo} onChange={handleChange} onSubmit={handleSubbmit}/>
+            {loading && <p>Loading...</p>}
+            {error && <p>Oops something went wrong</p>}
             <ul>
                 {todos.map((todo) => {
                     if (filter === "finished" && !todo.done) return null
