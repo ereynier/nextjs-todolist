@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# TodoList App
+
+This is a TodoList app built with NextJS, PostgreSQL, Prisma, Sanity, and Apollo GraphQL.
+
+## Features
+
+- Add, edit, and delete tasks
+- Mark tasks as completed
+- Filter tasks by status (completed or not completed)
+- Sort task by alphabetic or created date
+
+## Tech Stack
+
+- NextJS: server-side rendering and handling routing
+- PostgreSQL: database to store tasks
+- Prisma: ORM for database modeling and query building
+- Sanity: headless CMS for storing app configuration and settings
+- Apollo GraphQL: client-side data fetching and caching
 
 ## Getting Started
 
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+1. Clone the repository:
+```
+$ git clone https://github.com/ereynier/nextjs-todolist.git
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+$ cd nextjs-todolist
+$ npm install
+```
 
-[http://localhost:3000/api/hello](http://localhost:3000/api/hello) is an endpoint that uses [Route Handlers](https://beta.nextjs.org/docs/routing/route-handlers). This endpoint can be edited in `app/api/hello/route.ts`.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+3. Create a `.env.local` file in the root directory with the following variables:
 
-## Learn More
+```DATABASE_URL="postgres://user:password@localhost:5432/todo_list"```
 
-To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Replace `user` and `password` with your PostgreSQL username and password. Replace `your-sanity-project-id` and `your-sanity-dataset` with your Sanity project ID and dataset name.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+4. Create the database and run database migrations:
 
-## Deploy on Vercel
+```
+$ npx prisma migrate dev --preview-feature
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+5. Start the development server:
+```
+$ npm run dev
+```
+
+
+6. Open http://localhost:3000 in your browser to view the app.
+
+## Deployment
+
+To deploy the app to a production server, you can follow these steps:
+
+1. Create a production database and set the `DATABASE_URL` environment variable to its connection string.
+2. Build the app:
+
+```
+$ npm run build
+```
+
+
+3. Start the app:
+
+```
+npm start
+```
