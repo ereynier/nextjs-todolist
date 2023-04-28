@@ -17,7 +17,7 @@ export const resolvers = {
           createTodoItem: async(parent: any, args: any, context: Context) => {
               return await context.prisma.todoItem.create({
                   data: {
-                      title: args.title,
+                      text: args.text,
                       completed: false
                   }
               });
@@ -28,7 +28,7 @@ export const resolvers = {
                       id: parseInt(args.id, 10)
                   },
                   data: {
-                      title: args.title,
+                      text: args.text,
                       completed: args.completed
                   }
               });

@@ -1,7 +1,7 @@
 export const typeDefs = `#graphql
     type TodoItem {
         id: ID!
-        title: String!
+        text: String!
         completed: Boolean!
         createdAt: String!
         updatedAt: String!
@@ -13,8 +13,8 @@ export const typeDefs = `#graphql
     }
 
     type Mutation {
-        createTodoItem(title: String!): TodoItem
-        updateTodoItem(id: ID!, title: String, completed: Boolean): TodoItem
+        createTodoItem(text: String!): TodoItem
+        updateTodoItem(id: ID!, text: String, completed: Boolean): TodoItem
         deleteTodoItem(id: ID!): TodoItem
     }
 `;

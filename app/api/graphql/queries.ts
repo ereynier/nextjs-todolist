@@ -4,7 +4,7 @@ export const GET_TODOS = gql`
 query Query {
   todos {
     id
-    title
+    text
     completed
     createdAt
     updatedAt

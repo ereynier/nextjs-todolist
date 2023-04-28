@@ -21,6 +21,9 @@ export default function Todos() {
     const [sortOrder, setSortOrder] = useState<number>(0)
     const sortType: string[] = ["asc", "desc", "chrono", "reverse"]
 
+    if (!loading && !error && data) {
+        console.log(data.todos[0])
+    }
 
 
     const addTodo = (text: string, done: boolean) => {
