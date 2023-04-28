@@ -1,3 +1,3 @@
-import { Todo } from "@prisma/client"
+import { TodoItem } from "@prisma/client"
 
-interface ITodo extends Todo {}
+interface ITodo extends TodoItem {}

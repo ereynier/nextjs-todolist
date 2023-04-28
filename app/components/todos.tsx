@@ -1,16 +1,27 @@
 "use client"
 
 import { TodoItem, TodoList } from "@/types/Todo"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Todo from "./todo"
 import { TextForm } from "./textForm"
 import Prompt from "./Prompt"
 import { GET_TODOS } from "../api/graphql/queries"
-import { useQuery } from "@apollo/client"
+import { useMutation, useQuery } from "@apollo/client"
+import { ITodo } from "@/typings"
+import { CREATE_TODO, DELETE_TODO, UPDATE_TODO } from "../api/graphql/mutations"
 
 export default function Todos() {
 
     const {data, loading, error} = useQuery(GET_TODOS)
+    const [deleteTodoItem] = useMutation(DELETE_TODO, {
+        refetchQueries: [{query: GET_TODOS}]
+    })
+    const [updateTodoItem] = useMutation(UPDATE_TODO, {
+        refetchQueries: [{query: GET_TODOS}]
+    })
+    const [createTodoItem] = useMutation(CREATE_TODO, {
+        refetchQueries: [{query: GET_TODOS}]
+    })
 
     const [todos, setTodos] = useState<TodoList>([])
     const [newTodo, setNewTodo] = useState<string>("")
@@ -21,28 +32,36 @@ export default function Todos() {
     const [sortOrder, setSortOrder] = useState<number>(0)
     const sortType: string[] = ["asc", "desc", "chrono", "reverse"]
 
-    if (!loading && !error && data) {
-        console.log(data.todos[0])
-    }
+    useEffect(() => {
+        if (!loading && !error && data) {
+            const fetchedTodos = data.todos.map((todo: ITodo) => {
+                return {text: todo.text, completed: todo.completed, date: new Date(parseInt((todo.createdAt).toString(), 10)), id: todo.id}
+                })
+            setTodos(fetchedTodos)
+        }
+    }, [data, loading, error])
 
 
-    const addTodo = (text: string, done: boolean) => {
-        const newTodo: TodoItem = { text: text, done: done, date: Date.now(), id: Date.now().toString() }
-        setTodos([...todos].concat(newTodo))
+    const addTodo = (text: string, completed: boolean) => {
+        createTodoItem({variables: {text: text, completed: completed}})
+        // const newTodo: TodoItem = { text: text, completed: completed, date: Date.now(), id: Date.now().toString() }
+        // setTodos([...todos].concat(newTodo))
     }
 
     const removeTodo = (id: string) => {
-        setTodos([...todos].filter((todo) => todo.id !== id))
+        deleteTodoItem({variables: {id: id}})
+        //setTodos([...todos].filter((todo) => todo.id !== id))
     }
 
-    const editTodo = (id: string, text: string, done: boolean) => {
-        setTodos([...todos].map((todo) => {
-            if (todo.id === id) {
-                todo.text = text
-                todo.done = done 
-            }
-            return todo
-        }))
+    const editTodo = (id: string, text: string, completed: boolean) => {
+        updateTodoItem({variables: {id: id, text: text, completed: completed}})
+        // setTodos([...todos].map((todo) => {
+        //     if (todo.id === id) {
+        //         todo.text = text
+        //         todo.completed = completed 
+        //     }
+        //     return todo
+        // }))
     }
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,25 +102,32 @@ export default function Todos() {
         setFilter(filter)
     }
 
-    const sortList = () => {
+    const clickSortList = (unsort: TodoList) => {
         setSortOrder((sortOrder + 1) % 4)
+        setTodos(sortList(unsort))
+    }
+        
+
+    const sortList = (unsort: TodoList) => {
+        let sorted: TodoList = []
         const sort: string = sortType[(sortOrder + 1) % 4]
         console.log(sort)
         if (sort === "asc" || sort === "desc") {
-            setTodos([...todos].sort((a, b) => {
+            sorted = ([...unsort].sort((a, b) => {
                 const mod = sort === "asc" ?  -1 : 1
                 if (a.text < b.text) return 1 * mod
                 if (a.text > b.text) return -1 * mod
                 return 0
             }))
         } else if (sort === "chrono" || sort === "reverse") {
-            setTodos([...todos].sort((a, b) => {
+            sorted = ([...unsort].sort((a, b) => {
                 const mod = sort === "chrono" ?  1 : -1
                 if (a.date < b.date) return 1 * mod
                 if (a.date > b.date) return -1 * mod
                 return 0
             }))
         }
+        return sorted
     }
 
     return (
@@ -136,7 +162,7 @@ export default function Todos() {
                     Unfinished
                 </button>
                 <button className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    onClick={sortList}>
+                    onClick={() => clickSortList(todos)}>
                     Sort
                     <span className="ml-2">
                         {sortType[sortOrder] === "asc" && 'A-Z'}
@@ -151,10 +177,10 @@ export default function Todos() {
             {error && <p>Oops something went wrong</p>}
             <ul>
                 {todos.map((todo) => {
-                    if (filter === "finished" && !todo.done) return null
-                    if (filter === "unfinished" && todo.done) return null
+                    if (filter === "finished" && !todo.completed) return null
+                    if (filter === "unfinished" && todo.completed) return null
                     return (
-                        <Todo key={todo.id} todo={todo} onChange={() => editTodo(todo.id, todo.text, !(todo.done))} onDelete={() => removeTodo(todo.id)} onEdit={() => handleEdit(todo)}/>
+                        <Todo key={todo.id} todo={todo} onChange={() => editTodo(todo.id, todo.text, !(todo.completed))} onDelete={() => removeTodo(todo.id)} onEdit={() => handleEdit(todo)}/>
                     )
                 })}
             </ul>

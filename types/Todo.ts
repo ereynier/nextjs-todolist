@@ -1,6 +1,6 @@
 export type TodoItem = {
     text: string
-    done: boolean
+    completed: boolean
     date: number
     id: string
 }
